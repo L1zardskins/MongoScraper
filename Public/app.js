@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Grab the articles as a json
 $.getJSON("/articles", function (data) {
   for (var i = 0; i < data.length; i++) {
@@ -92,5 +93,7 @@ $(document).on("click", ".save-button", function () {
   $("#titleinput").val("");
   $("#bodyinput").val("");
 });
+=======
+>>>>>>> parent of 4347a8d... final-need to host
 =======
 >>>>>>> parent of 4347a8d... final-need to host

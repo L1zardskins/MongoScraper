@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 var express = require("express");
 var bodyParser = require("body-parser");
 var logger = require("morgan");
@@ -157,5 +158,7 @@ app.post("/save-article", function (req, res) {
 app.listen(PORT, function () {
   console.log("App running on port " + PORT + "!");
 });
+=======
+>>>>>>> parent of 4347a8d... final-need to host
 =======
 >>>>>>> parent of 4347a8d... final-need to host
