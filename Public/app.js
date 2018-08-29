@@ -1,99 +1,137 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-// Grab the articles as a json
-$.getJSON("/articles", function (data) {
-  for (var i = 0; i < data.length; i++) {
-    $("#articles").append("<p data-id='" + data[i]._id + "'>" + data[i].title + "<br />" + data[i].link + "</p>");
-  }
+
+
+function createCard(data) {
+    var card = "<div class='card medium blue-grey darken-1'><div class='card-content white-text'><span class='card-title'>" + data.title + "</span><a target='_blank' href=" + data.link + ">Go To Article!!</a></div><div class='card-action'><a href='#' class='addfave'>Save To Favorites</a></div></div>"
+    $("#articles").append(card);
+}
+
+$("#scraper-button").on("click", function () {
+    console.log("pressed da button");
+    $("#articles").empty()
+    $.getJSON("/scrape", function (data) {
+        console.log("in Da request");
+        console.log(data);
+        // Add the title and delete button to the #results section
+        for (let i = 0; i < data.length; i++) {
+            createCard(data[i])
+        }
+    });
+})
+
+$(document).on("click", ".addfave", function () {
+    console.log("button clicked")
+    //console.log($(this).parent().parent().find("span").text())
+    $.ajax({
+        type: "POST",
+        url: "/save",
+        dataType: "json",
+        data: {
+            title: $(this).parent().parent().find("span").text(),
+            link: $(this).parent().parent().find("p").text(),
+            created: Date.now()
+        }
+    })
+        .then(function (data) {
+            console.log(data);
+            getFaves();
+            // $("#author").val("");
+            // $("#title").val("");
+        }
+        );
+    return false;
 });
 
+function getFaves() {
+    $.getJSON("/find", function (data) {
+        console.log("in Da Find");
+        console.log(data);
+        $("#faves").empty()
+        // Add the title and delete button to the #results section
+        for (let i = 0; i < data.length; i++) {
+            createFaveCard(data[i])
+        }
+    });
+}
+function createFaveCard(data) {
 
-// Whenever someone clicks a p tag
-$(document).on("click", "p", function () {
-  // Empty the notes from the note section
-  $("#notes").empty();
-  // Save the id from the p tag
-  var thisId = $(this).attr("data-id");
+    var card = "<div class='card medium blue-grey darken-1'><div class='card-content white-text'><span class='card-title'>" + data.title + "</span><a target='_blank' href=" + data.link + ">Go To Article</a></div><div class='card-action'><a href='#' class='addnotes' data-id=" + data._id + ">Add Notes</a><a href='#Saved Articles' class='deletefave' data-id=" + data._id + ">Remove</a></div></div>"
+    $("#faves").append(card);
+}
 
-  // Now make an ajax call for the Article
-  $.ajax({
-    method: "GET",
-    url: "/articles/" + thisId
-  })
-    // With that done, add the note information to the page
-    .then(function (data) {
-      console.log(data);
-      // The title of the article
-      $("#notes").append("<h2>" + data.title + "</h2>");
-      // An input to enter a new title
-      $("#notes").append("<input id='titleinput' name='title' >");
-      // A textarea to add a new note body
-      $("#notes").append("<textarea id='bodyinput' name='body'></textarea>");
-      // A button to submit a new note, with the id of the article saved to it
-      $("#notes").append("<button data-id='" + data._id + "' id='savenote'>Save Note</button>");
+$(document).on("click", ".addnotes", function () {
+    console.log("button");
+    $('.modal').modal('open')
+    id = $(this).data("id");
+    $("#Mheader").text($(this).parent().parent().find("span").text());
+    $("#Mtext").append($(this).parent().parent().find("a").first());
+    $("#addNote").attr("data-id", id)
+    console.log(id)
+    $.getJSON("/find/" + id, function (data) {
+        console.log("in Da Find");
+        console.log(data);
+        $("#savedNotes").empty()
+        // Add the title and delete button to the #results section
+        for (let i = 0; i < data.length; i++) {
+            console.log(data)
+            $("#savedNotes").append("<li data-id='" + data[i]._id + "' class='collection-item'>" + data[i].note + "<a id='deleteNote' class='btn-floating btn-small waves-effect waves-light red right deleteNote'><i class='material-icons'>delete_forever</i></a></li>")
+        }
+    })
+});
 
-      // If there's a note in the article
-      if (data.note) {
-        // Place the title of the note in the title input
-        $("#titleinput").val(data.note.title);
-        // Place the body of the note in the body textarea
-        $("#bodyinput").val(data.note.body);
-      }
+$(document).on("click", "#addNote", function () {
+    console.log("Add Note button");
+    id = $(this).data("id");
+
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/addNote",
+        data: {
+            articleid: id,
+            note: $("#note").val(),
+            created: Date.now()
+        }
+    })
+        // If that API call succeeds, add the title and a delete button for the note to the page
+        .then(function (data) {
+            $("#savedNotes").append("<li data-id=" + data._id + " class='collection-item'>" + data.note + "<a id='deleteNote' class='btn-floating btn-small waves-effect waves-light red right deleteNote'><i class='material-icons'>delete_forever</i></a></li>")
+            $("#note").val("");
+        });
+});
+
+$(document).on("click", ".deleteNote", function () {
+    // Save the p tag that encloses the button
+    var selected = $(this).parent();
+    console.log(selected.attr("data-id"))
+    // Make an AJAX GET request to delete the specific note
+    // this uses the data-id of the p-tag, which is linked to the specific note
+    $.ajax({
+        type: "GET",
+        url: "/delete/note/" + selected.attr("data-id"),
+
+        // On successful call
+        success: function (response) {
+            // Remove the p-tag from the DOM
+            selected.remove();
+            // Clear the note and title inputs
+            $("#note").val("");
+            // Make sure the #action-button is submit (in case it's update)
+            // $("#action-button").html("<button id='make-new'>Submit</button>");
+        }
     });
 });
 
-// When you click the savenote button
-$(document).on("click", "", function () {
-  // Grab the id associated with the article from the submit button
-  var thisId = $(this).attr("data-id");
-
-  // Run a POST request to change the note, using what's entered in the inputs
-  $.ajax({
-    method: "POST",
-    url: "/articles/" + thisId,
-    data: {
-      // Value taken from title input
-      title: $("#titleinput").val(),
-      // Value taken from note textarea
-      body: $("#bodyinput").val()
-    }
-  })
-    // With that done
-    .then(function (data) {
-      // Log the response
-      console.log(data);
-      // Empty the notes section
-      $("#notes").empty();
+$(document).on("click", ".deletefave", function () {
+    // Save the p tag that encloses the button
+    var selected = $(this);
+    console.log(selected.attr("data-id"))
+    // Make an AJAX GET request to delete the specific note
+    // this uses the data-id of the p-tag, which is linked to the specific note
+    $.ajax({
+        type: "GET",
+        url: "/delete/fave/" + selected.attr("data-id"),
+        success: function (response) {
+            selected.parent().parent().remove();
+        }
     });
-
-  // Also, remove the values entered in the input and textarea for note entry
-  $("#titleinput").val("");
-  $("#bodyinput").val("");
 });
-
-$(document).on("click", ".save-button", function () {
-  console.log("clicked")
-  $.ajax({
-    method: "POST",
-    url: "/save-article",
-    data: {
-      title: $(".title").text(),
-      link: $(".link").attr("href")
-    }
-  })
-    // With that done
-    .then(function (data) {
-      // Log the response
-      console.log(data);
-      // Empty the notes section
-      $("#notes").empty();
-    });
-
-  // Also, remove the values entered in the input and textarea for note entry
-  $("#titleinput").val("");
-  $("#bodyinput").val("");
-});
-=======
->>>>>>> parent of 4347a8d... final-need to host
-=======
->>>>>>> parent of 4347a8d... final-need to host
