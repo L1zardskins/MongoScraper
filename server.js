@@ -23,7 +23,7 @@ app.use(
 app.use(express.static("public"));
 
 // Database configuration
-var databaseUrl = "scraper";
+var databaseUrl = "mongodb://heroku_p1gs706m:7a3kcusagsd5gbbf5rpipt6j5k@ds125872.mlab.com:25872/heroku_p1gs706m";
 var collections = ["savedArticles", "articleNotes"];
 
 // Hook mongojs config to db variable
